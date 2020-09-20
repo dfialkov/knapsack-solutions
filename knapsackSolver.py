@@ -1,24 +1,22 @@
-import csv
-from time import process_time, process_time_ns
-
 class knapsackSolver:
     def __init__(self, objects, cap):
         self.objects = objects
         self.cap = cap
         self.powerSet = [[]]
 
-    def displayResult(self, n, time, mode):
-        if mode == "e":
-            with open(r"exhaustive.csv", 'a', newline='') as out:
-                writer = csv.writer(out)
-                writer.writerow([n, time])
-        if mode == "g":
-            with open(r"greedy.csv", 'a', newline='') as out:
-                writer = csv.writer(out)
-                writer.writerow([n, time])
+    def displayResult(self, maxSet):
+        maxSetVal = 0
+        for i in maxSet:
+            maxSetVal += i[1]
+        print(maxSetVal)
+        setWeight = 0
+        for i in maxSet:
+            setWeight += i[0]
+        print(setWeight)
+        for i in maxSet:
+            print(str(i[2]), end=" ")
 
     def greedy(self):
-        start = process_time()
         self.objects.sort(key=lambda x: (x[1]/x[0], -x[1]))
         self.objects.reverse()
         runningWeight = self.cap
@@ -27,10 +25,9 @@ class knapsackSolver:
             if obj[0] <= runningWeight:
                 knapsack.append(obj)
                 runningWeight -= obj[0]
-        self.displayResult(len(self.objects), process_time() - start, "g")
+        self.displayResult(knapsack)
 
     def exhaustive(self):
-        start = process_time()
         self.findPowerSet()
         maxSetVal = 0
         maxSet = []
@@ -43,7 +40,7 @@ class knapsackSolver:
             if setWeight <= self.cap and setVal > maxSetVal:
                 maxSetVal = setVal
                 maxSet = subset
-        self.displayResult(len(self.objects), process_time() - start, "e")
+        self.displayResult(maxSet)
         
     def findPowerSet(self):
         #The full powerset kills my computer if I generate it.
@@ -64,24 +61,24 @@ class knapsackSolver:
                 if setWeight + obj[0] <= self.cap:
                     #append the object to the current set
                     self.powerSet.append(self.powerSet[i] + [obj])
+            #report how many items were generated after processing the current item
+            print (str(idx+3) + ": " + str(len(self.powerSet)))
 
 
 def main():
         mode = input("Enter e for exhaustive or g for greedy: \n")
         inputFile = open("input.txt", "r")
         sackCap = int(inputFile.readline())
-        objCount = int(inputFile.readline())    
+        objCount = int(inputFile.readline())
         objects = []
         for i in range(objCount):
             nextObj = inputFile.readline().split()
             objects.append((int(nextObj[0]), int(nextObj[1]), i+1))
-        objects = objects * 10000
-        for i in range(0, 21):
-            solver = knapsackSolver(objects[:i], sackCap)
-            if mode == "e":
-                solver.exhaustive()
-            elif mode == "g":
-                solver.greedy()
+        solver = knapsackSolver(objects, sackCap)
+        if mode == "e":
+            solver.exhaustive()
+        elif mode == "g":
+            solver.greedy()
         
 if __name__ == "__main__":
     main()
